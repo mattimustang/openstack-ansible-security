@@ -17,7 +17,9 @@
   apt:
     name: "{{ auditd_pkg }}"
     state: present
-  when: ansible_pkg_mgr == 'apt'
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -28,7 +30,9 @@
   yum:
     name: "{{ auditd_pkg }}"
     state: present
-  when: ansible_pkg_mgr == 'yum'
+  when:
+    - ansible_pkg_mgr == 'yum'
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -40,7 +44,9 @@
     name: auditd
     state: started
     enabled: true
-  when: not check_mode
+  when:
+    - not check_mode
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -61,7 +67,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?max_log_file ="
     line: "max_log_file = {{ security_max_log_file }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -74,7 +82,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?max_log_file_action ="
     line: "max_log_file_action = {{ security_max_log_file_action }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -87,7 +97,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?num_logs ="
     line: "num_logs = {{ security_num_logs }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -99,7 +111,10 @@
   apt:
     name: debsums
     state: present
-  when: ansible_pkg_mgr == 'apt'
+  register: debsums_installed
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -113,7 +128,10 @@
   register: v38637_result
   changed_when: False
   failed_when: "'not installed' in v38637_result.stdout"
-  when: ansible_pkg_mgr == 'apt'
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - security_audit_enable | bool
+    - debsums_installed is defined
   tags:
     - auditd
     - cat2
@@ -125,7 +143,7 @@
   when:
     - not check_mode
     - ansible_pkg_mgr == 'apt'
-    - v38637_result.rc == 2
+    - v38637_result.rc == 2 and debsums_installed is defined and security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -134,7 +152,9 @@
 - name: Check audit package contents for alterations with rpm (for V-38637)
   shell: rpmverify audit audit-libs | grep -v audit.conf | wc -l
   register: v38637_result
-  when: ansible_pkg_mgr == 'yum'
+  when:
+    - ansible_pkg_mgr == 'yum'
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -146,7 +166,7 @@
   when:
     - not check_mode
     - ansible_pkg_mgr == 'yum'
-    - v38637_result.stdout != "0"
+    - v38637_result.stdout != "0" and security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -166,7 +186,9 @@
     dest: /var/log/audit/
     group: root
     recurse: true
-  when: auditd_log_dir.stat.exists | bool
+  when:
+    - auditd_log_dir.stat.exists | bool
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -177,7 +199,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?disk_error_action"
     line: "disk_error_action = {{ security_disk_error_action }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -190,7 +214,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?disk_full_action"
     line: "disk_full_action = {{ security_disk_full_action }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -201,9 +227,11 @@
 - name: V-38678 - Lower limit of available disk space when auditd triggers space_left_action
   lineinfile:
     dest: /etc/audit/auditd.conf
-    regexp: "^(#)?space_left"
+    regexp: "^(#)?space_left\\s+"
     line: "space_left = {{ security_space_left }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -216,7 +244,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?space_left_action"
     line: "space_left_action = {{ security_space_left_action }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -229,7 +259,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?action_mail_acct"
     line: "action_mail_acct = {{ security_action_mail_acct }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -242,7 +274,9 @@
     dest: /var/log/audit/
     owner: root
     recurse: true
-  when: auditd_log_dir.stat.exists | bool
+  when:
+    - auditd_log_dir.stat.exists | bool
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -255,7 +289,9 @@
   shell: ls /var/log/audit/
   register: v38498_result
   changed_when: false
-  when: auditd_log_dir.stat.exists | bool
+  when:
+    - auditd_log_dir.stat.exists | bool
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -268,7 +304,9 @@
     dest: "/var/log/audit/{{ item }}"
     mode: "u-x,g-wx,o-rwx"
   with_items: "{{ v38498_result.stdout_lines | default([]) }}"
-  when: auditd_log_dir.stat.exists | bool
+  when:
+    - auditd_log_dir.stat.exists | bool
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat2
@@ -280,6 +318,8 @@
     dest: /etc/audit/rules.d/osas-auditd.rules
   notify:
     - generate auditd rules
+  when:
+    - security_audit_enable | bool
   tags:
     - auditd
     - cat3
@@ -290,7 +330,9 @@
     regexp: "^(#)?active"
     line: "active = yes"
     state: present
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:
@@ -303,7 +345,9 @@
     dest: /etc/audit/auditd.conf
     regexp: "^(#)?admin_space_left_action"
     line: "admin_space_left_action = {{ security_admin_space_left_action }}"
-  when: auditd_conf.stat.exists | bool
+  when:
+    - auditd_conf.stat.exists | bool
+    - security_audit_enable | bool
   notify:
     - restart auditd
   tags:

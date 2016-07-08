@@ -46,6 +46,7 @@ security_aide_exclude_dirs:
 security_initialize_aide: false
 
 ## Audit daemon
+security_audit_enable: true
 # The following booleans control the rule sets added to auditd's default
 # set of auditing rules.  To see which rules will be added for each boolean,
 # refer to the templates/osas-auditd.j2 file.
