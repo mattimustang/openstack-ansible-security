@@ -28,6 +28,8 @@ cache_timeout: 600
 ###############################################################################
 
 ## AIDE
+# set to false to not install and enable AIDE
+security_aide_enable: true
 # The default Ubuntu configuration for AIDE will cause it to wander into some
 # terrible places on the system, such as /var/lib/lxc and images in /opt.
 # The following three default exclusions are highly recommended for AIDE to

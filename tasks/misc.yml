@@ -20,7 +20,9 @@
   with_items:
     - aide
     - aide-common
-  when: ansible_pkg_mgr == 'apt'
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - security_aide_enable | bool
   tags:
     - cat2
     - V-38489
@@ -29,7 +31,9 @@
   yum:
       name: aide
       state: present
-  when: ansible_pkg_mgr == 'yum'
+  when:
+    - ansible_pkg_mgr == 'yum'
+    - security_aide_enable | bool
   tags:
     - cat2
     - V-38489
@@ -46,7 +50,9 @@
   template:
     src: ZZ_aide_exclusions.j2
     dest: /etc/aide/aide.conf.d/ZZ_aide_exclusions
-  when: aide_conf.stat.exists | bool
+  when:
+    - aide_conf.stat.exists | bool 
+    - security_aide_enable | bool
   notify:
     - initialize AIDE
   tags:
@@ -67,7 +73,7 @@
     msg: "AIDE cron job is missing"
   when:
     - not check_mode
-    - v38670_result.stat.exists == False
+    - v38670_result.stat.exists == False and security_aide_enable
   tags:
     - cat2
     - V-38670
