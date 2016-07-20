@@ -202,6 +202,14 @@ security_ssh_client_alive_count_max: 0            # V-38610
 # especially within OpenStack CI gate jobs. See documentation for V-38613 for
 # more details.
 security_ssh_permit_root_login: 'yes'             # V-38613
+# ssh ciphers
+security_ssh_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr
 
 ## Kernel
 # Set these booleans to 'yes' to disable the kernel module (following the

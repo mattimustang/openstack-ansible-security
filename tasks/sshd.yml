@@ -223,10 +223,19 @@
     state: present
     dest: /etc/ssh/sshd_config
     regexp: '^(#)?Ciphers'
-    line: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc'
+    line: "Ciphers {{ security_ssh_ciphers | join(',') }}"
     insertafter: "^# openstack-ansible-security configurations"
     validate: '/usr/sbin/sshd -T -f %s'
   tags:
     - ssh
     - cat2
     - V-38617
+
+- name: The ssh client must be configured to use approved ciphers
+  lineinfile:
+    state: present
+    dest: /etc/ssh/ssh_config
+    regexp: '^(#)?\\s+Ciphers'
+    line: "Ciphers {{ security_ssh_ciphers | join(',') }}"
+  tags:
+    - ssh
