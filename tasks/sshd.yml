@@ -259,3 +259,33 @@
     line: "    MACs {{ security_ssh_macs | join(',') }}"
   tags:
     - ssh
+
+- name: Configure ssh daemon agent forwarding
+  lineinfile:
+    state: present
+    dest: /etc/ssh/sshd_config
+    regexp: '^(#)?AllowAgentForwarding'
+    line: "AllowAgentForwarding {{ security_ssh_agent_forwarding }}"
+    insertafter: "^# openstack-ansible-security configurations"
+    validate: '/usr/sbin/sshd -T -f %s'
+  tags:
+    - ssh
+
+- name: Configure ssh client agent forwarding
+  lineinfile:
+    state: present
+    dest: /etc/ssh/ssh_config
+    regexp: '^(#)?\s+ForwardAgent'
+    line: "    ForwardAgent {{ security_ssh_agent_forwarding }}"
+  tags:
+    - ssh
+
+- name: Configure ssh daemon privilege separation
+  lineinfile:
+    state: present
+    dest: /etc/ssh/sshd_config
+    regexp: '^(#)?UsePrivilegeSeparation'
+    line: "UsePrivilegeSeparation {{ security_ssh_use_privilege_separation }}"
+    validate: '/usr/sbin/sshd -T -f %s'
+  tags:
+    - ssh

@@ -219,6 +219,8 @@ security_ssh_macs:
   - hmac-sha2-512
   - hmac-sha2-256
   - hmac-ripemd160
+security_ssh_agent_forwarding: 'no'
+security_ssh_use_privilege_separation: 'sandbox'
 ## Kernel
 # Set these booleans to 'yes' to disable the kernel module (following the
 # STIG requirements). Set the boolean to 'no' to ensure no changes are made.
