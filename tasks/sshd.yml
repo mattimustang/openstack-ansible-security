@@ -235,7 +235,27 @@
   lineinfile:
     state: present
     dest: /etc/ssh/ssh_config
-    regexp: '^(#)?\\s+Ciphers'
-    line: "Ciphers {{ security_ssh_ciphers | join(',') }}"
+    regexp: '^(#)?\s+Ciphers'
+    line: "    Ciphers {{ security_ssh_ciphers | join(',') }}"
+  tags:
+    - ssh
+
+- name: The ssh daemon must be configured to use approved MACs
+  lineinfile:
+    state: present
+    dest: /etc/ssh/sshd_config
+    regexp: '^(#)?MACs'
+    line: "MACs {{ security_ssh_macs | join(',') }}"
+    insertafter: "^# openstack-ansible-security configurations"
+    validate: '/usr/sbin/sshd -T -f %s'
+  tags:
+    - ssh
+
+- name: The ssh client must be configured to use approved MACs
+  lineinfile:
+    state: present
+    dest: /etc/ssh/ssh_config
+    regexp: '^(#)?\s+MACs'
+    line: "    MACs {{ security_ssh_macs | join(',') }}"
   tags:
     - ssh
