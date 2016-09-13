@@ -18,6 +18,10 @@
 # apt cache updates as efficiently as possible.
 cache_timeout: 600
 
+# Set the package install state for distribution packages
+# Options are 'present' and 'latest'
+security_package_state: "latest"
+
 ### Default configurations for openstack-ansible-security #####################
 #
 # All of the configuration items below are documented in the developer notes
@@ -35,9 +39,10 @@ security_aide_enable: true
 # The following three default exclusions are highly recommended for AIDE to
 # work properly, but additional exclusions can be added to this list if needed.
 security_aide_exclude_dirs:
-  - /var/lib/lxc
   - /openstack
   - /opt
+  - /run
+  - /var
 #
 # By default, the AIDE database won't be initialized immediately since it can
 # consume plenty of CPU and I/O resources while it runs. To initialize the
@@ -47,6 +52,16 @@ security_initialize_aide: false
 
 ## Audit daemon
 security_audit_enable: true
+# V-38438 requires that auditd is enabled at boot time with a parameter in the
+# GRUB configuration.
+#
+# If 'security_enable_audit_during_boot' is set to 'yes', then the 'audit=1'
+# parameter will be added in /etc/default/grub.d/.
+# If 'security_enable_grub_update is set to 'yes', the grub.cfg will be
+# updated automatically.
+security_enable_audit_during_boot: yes            # V-38438
+security_enable_grub_update: yes                  # V-38438
+
 # The following booleans control the rule sets added to auditd's default
 # set of auditing rules.  To see which rules will be added for each boolean,
 # refer to the templates/osas-auditd.j2 file.
@@ -62,17 +77,17 @@ security_audit_clock_settime: yes                 # V-38527
 security_audit_clock_settimeofday: yes            # V-38522
 security_audit_clock_stime: yes                   # V-38525
 security_audit_DAC_chmod: no                      # V-38543
-security_audit_DAC_chown: yes                     # V-38545
-security_audit_DAC_lchown: yes                    # V-38558
+security_audit_DAC_chown: no                      # V-38545
+security_audit_DAC_lchown: no                     # V-38558
 security_audit_DAC_fchmod: no                     # V-38547
 security_audit_DAC_fchmodat: no                   # V-38550
-security_audit_DAC_fchown: yes                    # V-38552
-security_audit_DAC_fchownat: yes                  # V-38554
-security_audit_DAC_fremovexattr: yes              # V-38556
-security_audit_DAC_lremovexattr: yes              # V-38559
-security_audit_DAC_fsetxattr: yes                 # V-38557
-security_audit_DAC_lsetxattr: yes                 # V-38561
-security_audit_DAC_setxattr: yes                  # V-38565
+security_audit_DAC_fchown: no                     # V-38552
+security_audit_DAC_fchownat: no                   # V-38554
+security_audit_DAC_fremovexattr: no               # V-38556
+security_audit_DAC_lremovexattr: no               # V-38559
+security_audit_DAC_fsetxattr: no                  # V-38557
+security_audit_DAC_lsetxattr: no                  # V-38561
+security_audit_DAC_setxattr: no                   # V-38565
 security_audit_deletions: no                      # V-38575
 security_audit_failed_access: no                  # V-38566
 security_audit_filesystem_mounts: yes             # V-38568
@@ -231,6 +246,8 @@ security_disable_module_sctp: yes                 # V-38515
 security_disable_module_tipc: yes                 # V-38517
 security_disable_module_usb_storage: no           # V-38490
 security_disable_icmpv4_redirects: no             # V-38524
+security_disable_icmpv4_redirects_secure: no      # V-38526
+security_disable_icmpv6_redirects: no             # V-38548
 #
 # ** DANGER **
 # It's strongly recommended to fully understand the effects of changing the
@@ -238,12 +255,17 @@ security_disable_icmpv4_redirects: no             # V-38524
 # Notes' for each of the STIGs below before making any changes.
 # ** DANGER **
 #
-security_sysctl_tcp_syncookies: 1                 # V-38539
+security_sysctl_enable_tcp_syncookies: yes        # V-38539
+security_sysctl_enable_martian_logging: no        # V-38528
 #
 # Deployers who wish to disable IPv6 entirely must set this configuration
 # variable to 'yes'. See the documentation for V-38546 before making this
 # change.
 security_disable_ipv6: no                         # V-38546
+
+# Sets the global challenge ACK counter to a large value such
+# that a potential attacker could not reasonably come up against it.
+security_set_tcp_challenge_ack_limit: yes    # CVE-2016-5696
 
 ## Mail
 # The STIG requires inet_interfaces to be set to 'localhost', but Ubuntu will

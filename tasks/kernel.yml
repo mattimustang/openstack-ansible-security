@@ -16,7 +16,7 @@
 - name: V-38528 - The system must log martian packets
   sysctl:
     name: net.ipv4.conf.all.log_martians
-    value: 1
+    value: "{{ (security_sysctl_enable_martian_logging | bool) | ternary('1', '0') }}"
     state: present
     sysctl_set: yes
   tags:
@@ -48,11 +48,10 @@
     - cat3
     - V-38535
 
-# This is the default in Ubuntu 14.04
 - name: V-38539 - Enable TCP syncookies
   sysctl:
     name: net.ipv4.tcp_syncookies
-    value: "{{ security_sysctl_tcp_syncookies }}"
+    value: "{{ (security_sysctl_enable_tcp_syncookies | bool) | ternary('1', '0') }}"
     state: present
     sysctl_set: yes
   tags:
@@ -185,3 +184,39 @@
     - kernel
     - cat2
     - V-38524
+
+- name: CVE-2016-5696 - Sets the global challenge ACK counter to a large value
+  sysctl:
+    name: net.ipv4.tcp_challenge_ack_limit
+    value: 1073741823
+    state: present
+    sysctl_set: yes
+  when: security_set_tcp_challenge_ack_limit | bool
+  tags:
+    - kernel
+    - cat3
+    - CVE-2016-5696
+
+- name: V-38526 - The system must not accept ICMPv4 secure redirect packets on any interface
+  sysctl:
+    name: net.ipv4.conf.all.secure_redirects
+    value: 0
+    state: present
+    sysctl_set: yes
+  when: security_disable_icmpv4_redirects_secure | bool
+  tags:
+    - kernel
+    - cat2
+    - V-38526
+
+- name: V-38548 - The system must ignore ICMPv6 redirects by default
+  sysctl:
+    name: net.ipv6.conf.all.accept_redirects
+    value: 0
+    state: present
+    sysctl_set: yes
+  when: security_disable_icmpv6_redirects | bool
+  tags:
+    - kernel
+    - cat2
+    - V-38548

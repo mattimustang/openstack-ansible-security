@@ -59,11 +59,19 @@
   command: augenrules --load
   notify: restart auditd
 
-# This will take a while to complete the first run, so we will fork it into
-# the background so it doesn't hold up the whole playbook.
-- name: initialize AIDE
-  shell: "aideinit -b"
-  when: security_initialize_aide | bool
-
 - name: rehash aliases
   command: newaliases
+
+- name: update grub config
+  command: "{{ grub_update_cmd }}"
+  when:
+    - security_enable_grub_update | bool
+  notify:
+    - set bootloader file permissions after updating grub config
+
+# NOTE(mhayden): Running `update-grub` causes the bootloader permissions to
+# change, which breaks V-38583.
+- name: set bootloader file permissions after updating grub config
+  file:
+    path: "{{ grub_conf_file }}"
+    mode: 0644

@@ -60,6 +60,7 @@
 - name: V-38496 - Get all system accounts
   shell: "awk -F: '$1 !~ /^root$/ && $3 < 500 {print $1}' /etc/passwd"
   register: v38496_system_users
+  changed_when: False
   always_run: True
   tags:
     - auth
@@ -69,6 +70,7 @@
 - name: V-38496 - Loop through system accounts to find unlocked accounts
   shell: "awk -F: '$1 ~ /^{{ item }}$/ && $2 !~ /^[!*]/ {print $1}' /etc/shadow"
   register: v38496_unlocked_system_users
+  changed_when: False
   always_run: True
   with_items: "{{ v38496_system_users.stdout_lines | default([]) }}"
   tags:
@@ -117,10 +119,13 @@
   lineinfile:
     dest: "{{ pam_auth_file }}"
     state: present
-    regexp: "^(auth.*sufficient.*)nullok(.*)$"
+    regexp: "^({{ item }}.*sufficient.*)nullok(.*)$"
     line: '\1\2'
     backup: yes
     backrefs: yes
+  with_items:
+    - auth
+    - password
   when:
     - ansible_os_family == 'RedHat'
     - security_pam_remove_nullok | bool
@@ -183,7 +188,7 @@
 - name: V-38501 - The system must disable accounts after excessive login failures (install fail2ban)
   apt:
     name: fail2ban
-    state: present
+    state: "{{ security_package_state }}"
   when: security_install_fail2ban | bool
   tags:
     - auth
@@ -432,6 +437,7 @@
 - name: Search for sudoers files (for V-58901)
   shell: find /etc/sudoers* -type f
   register: v58901_result
+  changed_when: False
   always_run: True
   tags:
     - auth

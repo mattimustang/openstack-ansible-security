@@ -13,61 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: V-38489 - Install AIDE (with apt)
-  apt:
-      name: "{{ item }}"
-      state: present
-  with_items:
-    - aide
-    - aide-common
-  when:
-    - ansible_pkg_mgr == 'apt'
-    - security_aide_enable | bool
-  tags:
-    - cat2
-    - V-38489
-
-- name: V-38489 - Install AIDE (with yum)
-  yum:
-      name: aide
-      state: present
-  when:
-    - ansible_pkg_mgr == 'yum'
-    - security_aide_enable | bool
-  tags:
-    - cat2
-    - V-38489
-
-- name: Verify that AIDE configuration directory exists
-  stat:
-    path: /etc/aide/aide.conf.d
-  register: aide_conf
-  always_run: true
-  tags:
-    - always
-
-- name: V-38489 - Exclude certain directories from AIDE and initialize DB
-  template:
-    src: ZZ_aide_exclusions.j2
-    dest: /etc/aide/aide.conf.d/ZZ_aide_exclusions
-  when:
-    - aide_conf.stat.exists | bool 
-    - security_aide_enable | bool
-  notify:
-    - initialize AIDE
-  tags:
-    - cat2
-    - V-38489
-
-- name: Check for AIDE cron job (for V-38670)
-  stat:
-    path: /etc/cron.daily/aide
-  register: v38670_result
-  changed_when: False
-  tags:
-    - cat2
-    - V-38670
-
 - name: V-38670 - System must detect unauthorized changes to software and information
   fail:
     msg: "AIDE cron job is missing"
@@ -98,7 +43,7 @@
 - name: V-38620 - Synchronize system clock (installing chrony with apt)
   apt:
     name: chrony
-    state: present
+    state: "{{ security_package_state }}"
   when: ansible_pkg_mgr == 'apt'
   tags:
     - cat2
@@ -107,7 +52,7 @@
 - name: V-38620 - Synchronize system clock (installing chrony with yum)
   yum:
     name: chrony
-    state: present
+    state: "{{ security_package_state }}"
   when: ansible_pkg_mgr == 'yum'
   tags:
     - cat2
@@ -115,7 +60,7 @@
 
 - name: V-38620 - Synchronize system clock (enable chrony)
   service:
-    name: chrony
+    name: "{{ chrony_service }}"
     state: started
     enabled: yes
   when: not check_mode
@@ -149,7 +94,7 @@
 - name: V-38624 - System logs must be rotated daily (install logrotate with apt)
   apt:
     name: logrotate
-    state: present
+    state: "{{ security_package_state }}"
   when: ansible_pkg_mgr == 'apt'
   tags:
     - cat3
@@ -158,7 +103,7 @@
 - name: V-38624 - System logs must be rotated daily (install logrotate with yum)
   yum:
     name: logrotate
-    state: present
+    state: "{{ security_package_state }}"
   when: ansible_pkg_mgr == 'yum'
   tags:
     - cat3
@@ -410,6 +355,7 @@
 - name: Check for unlabeled device files (for V-51379)
   shell: "find /dev -context '*unlabeled_t*'"
   register: v51379_unlabeled_devices
+  changed_when: False
   always_run: True
   when:
     - ansible_os_family == 'RedHat'
