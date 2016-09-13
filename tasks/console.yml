@@ -36,7 +36,7 @@
 - name: V-38593 - Display a login banner for console prompts
   copy:
     src: login_banner.txt
-    dest: /etc/issue.net
+    dest: /etc/issue
   tags:
     - console
     - cat2
