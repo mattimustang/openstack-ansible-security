@@ -24,23 +24,6 @@
     tags:
       - always
 
-  # NOTE(major): This task differs from other OSA roles because it has
-  # "always_run" set. This is required for check/audit mode to operate
-  # properly.
-  - name: Check init system
-    command: cat /proc/1/comm
-    register: _pid1_name
-    changed_when: False
-    always_run: True
-    tags:
-      - always
-
-  - name: Set the name of pid1
-    set_fact:
-      pid1_name: "{{ _pid1_name.stdout }}"
-    tags:
-      - always
-
   - name: Check for check/audit mode
     command: /bin/true
     register: noop_result
@@ -48,36 +31,25 @@
     tags:
       - always
 
-  - name: Set facts
+  - name: Check to see if we're booting with EFI/UEFI
     set_fact:
-      check_mode: "{{ noop_result | skipped }}"
-      systemd_running: "{{ pid1_name == 'systemd' }}"
-      linux_security_module: "{{ (ansible_os_family == 'Debian') | ternary('apparmor','selinux') }}"
+      booted_with_efi: "{{ ansible_mounts | selectattr('mount', 'equalto', '/boot/efi') | list | length > 0 }}"
     tags:
       - always
 
-  - include: apt.yml
-    when: ansible_pkg_mgr == 'apt'
+  - name: Set facts
+    set_fact:
+      check_mode: "{{ noop_result | skipped }}"
+      linux_security_module: "{{ (ansible_os_family == 'Debian') | ternary('apparmor','selinux') }}"
+      grub_config_file_boot: "{{ booted_with_efi | ternary(grub_conf_file_efi, grub_conf_file) }}"
     tags:
-      - apt
-      - package
+      - always
 
-  - include: rpm.yml
-    when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    tags:
-      - package
-      - rpm
+  - name: Install EPEL repository
+    yum:
+      name: epel-release
+      state: "{{ security_package_state }}"
+    when:
+      - ansible_pkg_mgr == 'yum'
 
-  - include: aide.yml
-  - include: auditd.yml
-  - include: auth.yml
-  - include: boot.yml
-  - include: console.yml
-  - include: file_perms.yml
-  - include: kernel.yml
-  - include: lsm.yml
-  - include: mail.yml
-  - include: misc.yml
-  - include: nfsd.yml
-  - include: services.yml
-  - include: sshd.yml
+  - include: "{{ stig_version }}stig/main.yml"

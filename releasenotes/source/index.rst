@@ -7,4 +7,6 @@
 
    liberty
    mitaka
+   newton
    unreleased
+   ocata

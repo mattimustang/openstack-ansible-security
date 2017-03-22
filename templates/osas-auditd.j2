@@ -1,5 +1,11 @@
 # {{ ansible_managed }}
 
+# Delete all existing auditd rules prior to loading this ruleset.
+-D
+
+# Increase the buffers to survive stress events.
+-b 320
+
 {% if security_audit_clock_settimeofday | bool %}
 # RHEL 6 STIG V-38522
 # Audits changes to system time via settimeofday
@@ -61,7 +67,11 @@
 -w /etc/issue -p wa -k audit_network_modifications-V-38540
 -w /etc/issue.net -p wa -k audit_network_modifications-V-38540
 -w /etc/hosts -p wa -k audit_network_modifications-V-38540
+{% if ansible_os_family == "RedHat" %}
+-w /etc/sysconfig/network -p wa -k audit_network_modifications-V-38540
+{% elif ansible_os_family == "Debian" %}
 -w /etc/network -p wa -k audit_network_modifications-V-38540
+{% endif %}
 {% endif %}
 
 {% if linux_security_module == 'apparmor' and security_audit_mac_changes | bool %}
