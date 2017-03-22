@@ -150,6 +150,9 @@ security_ntp_servers:
   - 1.north-america.pool.ntp.org
   - 2.north-america.pool.ntp.org
   - 3.north-america.pool.ntp.org
+security_ntp_server_options: "offline minpoll 8"
+security_ntp_peers: []
+security_ntp_peer_options: "minpoll 2 maxpoll 4 polltarget 30"
 # Chrony limits access to clients that are on certain subnets.  Adjust the
 # following subnets here to limit client access to chrony servers.
 security_allowed_ntp_subnets:

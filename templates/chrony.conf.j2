@@ -20,7 +20,10 @@
 # better to use IP numbers than host names.
 
 {% for ntp_server in security_ntp_servers %}
-server {{ ntp_server }} offline minpoll 8
+server {{ ntp_server }} {{ security_ntp_server_options }}
+{% endfor %}
+{% for ntp_peer in security_ntp_peers %}
+peer {{ ntp_peer }} {{ security_ntp_peer_options }}
 {% endfor %}
 
 # Look here for the admin password needed for chronyc.  The initial
