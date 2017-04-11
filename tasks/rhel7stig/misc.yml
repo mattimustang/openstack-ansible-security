@@ -216,6 +216,7 @@
       TMOUT={{ security_rhel7_session_timeout }}
       readonly TMOUT
       export TMOUT
+  when: security_rhel7_enable_session_timeout | bool
   tags:
     - medium
     - misc
