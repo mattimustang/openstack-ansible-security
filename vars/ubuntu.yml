@@ -50,14 +50,17 @@ stig_packages:
   - packages:
       - auditd
       - audispd-plugins
-      - aide
-      - aide-common
       - chrony
       - debsums
       - logrotate
       - postfix
     state: "{{ security_package_state }}"
     enabled: True
+  - packages:
+      - aide
+      - aide-common
+    state: "{{ security_package_state }}"
+    enabled: "{{ security_aide_enable }}"
   - packages:
       - apparmor
       - apparmor-profiles
@@ -106,14 +109,17 @@ stig_packages_rhel7:
   - packages:
       - auditd
       - audispd-plugins
-      - aide
-      - aide-common
       - libpwquality-common
       - openssh-client
       - openssh-server
       - screen
     state: "{{ security_package_state }}"
     enabled: True
+  - packages:
+      - aide
+      - aide-common
+    state: "{{ security_package_state }}"
+    enabled: "{{ security_aide_enable }}"
   - packages:
       - apparmor
       - apparmor-profiles

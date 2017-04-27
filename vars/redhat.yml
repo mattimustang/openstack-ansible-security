@@ -47,12 +47,15 @@ stig_packages:
   - packages:
       - audit
       - audispd-plugins
-      - aide
       - chrony
       - logrotate
       - postfix
     state: "{{ security_package_state }}"
     enabled: True
+  - packages:
+      - aide
+    state: "{{ security_package_state }}"
+    enabled: "{{ security_aide_enable }}"
   - packages:
       - esc
       - pam_pkcs11
@@ -108,7 +111,6 @@ stig_packages_rhel7:
   - packages:
       - audispd-plugins
       - audit
-      - aide
       - dracut-fips
       - dracut-fips-aesni
       - openssh-clients
@@ -116,6 +118,10 @@ stig_packages_rhel7:
       - screen
     state: "{{ security_package_state }}"
     enabled: True
+  - packages:
+      - aide
+    state: "{{ security_package_state }}"
+    enabled: "{{ security_aide_enable }}"
   - packages:
       - libselinux-python
       - policycoreutils-python
